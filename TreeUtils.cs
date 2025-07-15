@@ -280,30 +280,29 @@ public static class NodeExtensionMethods
         return !GodotObject.IsInstanceValid(node);
     }
 
-    public static bool TryLocateCriticalNodes_Throws<T>(this T parent) where T : Node
+    /// <summary>
+    /// Finds all children in the scene who match fields/properties on the parent node which are
+    /// tagged with CriticalNodeAttribute. Throws MissingCriticalNodeException if any node fails.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="parent">The Node-derived class which is being operated on</param>
+    /// <exception cref="MissingCriticalNodeException">
+    /// If any node fails to assign for any reason.
+    /// If the reason is code-related, i.e. the reflection functions fail, then the actual
+    /// exception will be wrapped in this exception.</exception>
+    public static void TryLocateCriticalNodes_Throws<T>(this T parent) where T : Node
     {
-        return TryLocateCriticalNodes(parent, true);
-    }
-
-    public static bool TryLocateCriticalNodes<T>(this T parent) where T : Node
-    {
-        return TryLocateCriticalNodes(parent, false);
-    }
-
-    private static bool TryLocateCriticalNodes<T>(this T parent, bool throwIfMissing) where T : Node
-    {
+    // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
+    // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
         TypeInfo to = typeof(T).GetTypeInfo();
-        FieldInfo[] fields = to.GetFields();
+        FieldInfo[] fields = to.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
         bool foundAnyTaggedFields = false;
         List<string> failedNodes = [];
-        foreach (FieldInfo fo in fields)
+        foreach (FieldInfo field in fields)
         {
-            CriticalNodeAttribute? attr = fo.GetCustomAttribute<CriticalNodeAttribute>();
+            CriticalNodeAttribute? attr = field.GetCustomAttribute<CriticalNodeAttribute>();
             if (attr is null)
-                continue;
-
-            if (fo is not FieldInfo field)
                 continue;
 
             foundAnyTaggedFields = true;
@@ -312,30 +311,27 @@ public static class NodeExtensionMethods
         }
 
         if (failedNodes.Count != 0)
-        {
-            string message = $"Failed to locate critical nodes: {string.Join(", ", failedNodes)}";
-            if (throwIfMissing)
-                throw new MissingCriticalNodeException(message);
-            
-            Log.GameErrorNoFormat(message);
-            return false;
-        }
+            throw new MissingCriticalNodeException($"Failed to locate critical nodes: {string.Join(", ", failedNodes)}");
 
-        if (!foundAnyTaggedFields)
-        {
+        if (!foundAnyTaggedFields) 
             Log.Debug("{0} does not contain any member nodes tagged as 'Critical'", parent.Name);
-        }
-
-        return true;
     }
 
     private static bool LocateCriticalNode(Node parent, FieldInfo criticalNode, string name)
     {
         Node candidate = parent.FindChild(name);
-        if (candidate.GetType() != criticalNode.FieldType) 
+        if (candidate is null || candidate.GetType() != criticalNode.FieldType) 
             return false;
 
-        criticalNode.SetValue(criticalNode.FieldType, candidate);
+        try
+        {
+            criticalNode.SetValue(parent, candidate);
+        }
+        catch (Exception e)
+        {
+            throw new MissingCriticalNodeException($"Failed to assign node {name}: {e.GetType().Name}", e);
+        }
+
         Log.Debug("Found node {0} at {1}", name, candidate.GetPath());
         return true;
     }
