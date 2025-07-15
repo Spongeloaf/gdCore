@@ -293,17 +293,17 @@ public static class NodeExtensionMethods
     private static bool TryLocateCriticalNodes<T>(this T parent, bool throwIfMissing) where T : Node
     {
         TypeInfo to = typeof(T).GetTypeInfo();
-        MemberInfo[] members = to.GetMembers();
+        FieldInfo[] fields = to.GetFields();
 
         bool foundAnyTaggedFields = false;
         List<string> failedNodes = [];
-        foreach (MemberInfo mo in members)
+        foreach (FieldInfo fo in fields)
         {
-            CriticalNodeAttribute? attr = mo.GetCustomAttribute<CriticalNodeAttribute>();
+            CriticalNodeAttribute? attr = fo.GetCustomAttribute<CriticalNodeAttribute>();
             if (attr is null)
                 continue;
 
-            if (mo is not FieldInfo field)
+            if (fo is not FieldInfo field)
                 continue;
 
             foundAnyTaggedFields = true;
@@ -323,7 +323,7 @@ public static class NodeExtensionMethods
 
         if (!foundAnyTaggedFields)
         {
-            Log.Debug("{0} does not contain any member nodes tagged as 'Critical'");
+            Log.Debug("{0} does not contain any member nodes tagged as 'Critical'", parent.Name);
         }
 
         return true;
@@ -336,7 +336,7 @@ public static class NodeExtensionMethods
             return false;
 
         criticalNode.SetValue(criticalNode.FieldType, candidate);
+        Log.Debug("Found node {0} at {1}", name, candidate.GetPath());
         return true;
-
     }
 }
