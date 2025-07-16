@@ -231,6 +231,7 @@ public static class NodeExtensionMethods
         }
     }
 
+    // TODO: Move this to spatial
     public static void AddChildrenInAGridPattern(this Node parent, List<Node3D> children, float spacing)
     {
         // + 0.5f makes sure we round up 
@@ -319,6 +320,7 @@ public static class NodeExtensionMethods
 
     private static bool LocateCriticalNode(Node parent, FieldInfo criticalNode, string name)
     {
+        // TODO: Consider using a better method that is not case-sensitive
         Node candidate = parent.FindChild(name);
         if (candidate is null || candidate.GetType() != criticalNode.FieldType) 
             return false;
