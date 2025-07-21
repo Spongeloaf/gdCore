@@ -22,7 +22,7 @@ public static class ResourceUtils
     /// <returns></returns>
     /// <exception cref="MissingResourceException"></exception>
     /// <exception cref="InvalidCastException"></exception>
-    public static T LoadSceneOrThrow<T>(ResPath path) where T : Node
+    public static T LoadScene_Throws<T>(ResPath path) where T : Node
     {
         PackedScene scn = ResourceLoader.Load<PackedScene>(path.ToString());
         if (scn is null)
