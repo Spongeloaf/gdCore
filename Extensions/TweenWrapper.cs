@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace GdCore
+namespace GdCore.Extensions
 {
     public enum TweenProp
     {
@@ -57,13 +57,15 @@ namespace GdCore
             };
         }
 
-        public static void TweenProperty(Node target, TweenProp prop, Variant finalValue, double duration, Tween.TransitionType transition = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut)
+        public static Tween TweenProperty(Node target, TweenProp prop, Variant finalValue, double duration, Tween.TransitionType transition = Tween.TransitionType.Linear, Tween.EaseType ease = Tween.EaseType.InOut)
         {
             Tween tween = target.GetTree().CreateTween();
             string propName = prop.ToPropertyString();
             tween.TweenProperty(target, propName, finalValue, duration)
                 .SetTrans(transition)
                 .SetEase(ease);
+
+            return tween;
         }
     }
 

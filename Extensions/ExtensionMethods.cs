@@ -2,7 +2,7 @@
 using System.Text;
 using Godot;
 
-namespace GdCore;
+namespace GdCore.Extensions;
 
 public static class ExtensionMethodsEnum
 {

@@ -1,8 +1,10 @@
 ﻿using System.Reflection;
+using GdCore.CodeUtils;
+using GdCore.Services;
 using Godot;
 using JetBrains.Annotations;
 
-namespace GdCore;
+namespace GdCore.Extensions;
 
 public static class NodeExtensionMethods
 {
@@ -119,7 +121,7 @@ public static class NodeExtensionMethods
     public static List<T> FindAllChildrenRecursive<T>(this Node node) where T : Node
     {
         List<T> result = new();
-        FindAllChildrenRecursive_Impl(node, result);
+        node.FindAllChildrenRecursive_Impl(result);
         return result;
     }
 
@@ -143,7 +145,7 @@ public static class NodeExtensionMethods
             return;
         }
 
-        TakeOwnership(node, owner);
+        node.TakeOwnership(owner);
     }
 
     private static void TakeOwnership(this Node node, Node owner)
@@ -151,7 +153,7 @@ public static class NodeExtensionMethods
         node.Owner = owner;
 
         foreach (Node child in node.GetChildren())
-            TakeOwnership(child, owner);
+            child.TakeOwnership(owner);
     }
 
     /// <summary>
@@ -179,13 +181,13 @@ public static class NodeExtensionMethods
     /// <param name="newParent"></param>
     public static void AdoptNode(this Node newParent, Node child)
     {
-        AdoptNode(newParent, child, newParent);
+        newParent.AdoptNode(child, newParent);
     }
 
     public static T CreateParentedChild<T>(this Node parent, Node sceneRoot, string name) where T : Node, new()
     {
         T node = new();
-        AdoptNode(node, parent, sceneRoot);
+        node.AdoptNode(parent, sceneRoot);
         node.Name = name;
         return node;
     }
@@ -200,17 +202,17 @@ public static class NodeExtensionMethods
 
     public static T CreateParentedChild<T>(this Node parent) where T : Node, new()
     {
-        return CreateParentedChild<T>(parent, parent);
+        return parent.CreateParentedChild<T>(parent);
     }
 
     public static T CreateParentedChild<T>(this Node parent, Node sceneRoot) where T : Node, new()
     {
-        return CreateParentedChild<T>(parent, sceneRoot, typeof(T).Name);
+        return parent.CreateParentedChild<T>(sceneRoot, typeof(T).Name);
     }
 
     public static T? FindAncestor<T>(this Node node) where T : Node
     {
-        return FindAncestor_Impl<T>(node);
+        return node.FindAncestor_Impl<T>();
     }
 
     private static T? FindAncestor_Impl<T>(this Node node) where T : class

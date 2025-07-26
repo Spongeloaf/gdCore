@@ -1,4 +1,6 @@
-﻿namespace GdCore;
+﻿using GdCore.Extensions;
+
+namespace GdCore.CodeUtils;
 
 [Serializable]
 public abstract class GdException : Exception

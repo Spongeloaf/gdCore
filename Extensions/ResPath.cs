@@ -1,6 +1,6 @@
 ﻿using Godot;
 
-namespace GdCore;
+namespace GdCore.Extensions;
 
 /// <summary>
 /// This class formalizes the concept of a resource path into an object that can be easily
@@ -30,7 +30,7 @@ public class ResPath
 	/// <exception cref="ArgumentException">If the given path does not start with 'res://' or 'user://'</exception>
 	public ResPath(string? address)
 	{
-		if (String.IsNullOrEmpty(address))
+		if (string.IsNullOrEmpty(address))
 			throw new ArgumentNullException(nameof(address), "ResPaths cannot be null or empty!");
 
 		if (address.StartsWith(resPrefix))

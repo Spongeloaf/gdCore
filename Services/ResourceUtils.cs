@@ -1,6 +1,7 @@
-﻿using Godot;
+﻿using GdCore.CodeUtils;
+using GdCore.Extensions;
 
-namespace GdCore;
+namespace GdCore.Services;
 
 public static class ResourceUtils
 {

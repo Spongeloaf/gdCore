@@ -4,7 +4,7 @@ using Godot;
 
 // Logs to visual studio debug output and godot console
 // There's a copy of this in both the base project and the utility project. If you overhaul this, please duplicate it there!
-namespace GdCore;
+namespace GdCore.Services;
 
 [Flags]
 public enum DebugCategory : ulong
@@ -40,7 +40,7 @@ public static class Log
 	private static void PrintCurrentCategories()
 	{
 		DebugCategory[] categories = Enum.GetValues<DebugCategory>();
-		StringBuilder sb = new StringBuilder((categories.Length * 32) + categoryHeader.Length);
+		StringBuilder sb = new StringBuilder(categories.Length * 32 + categoryHeader.Length);
 		sb.Append(categoryHeader);
 		foreach (DebugCategory cat in categories)
 		{
