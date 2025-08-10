@@ -1,10 +1,10 @@
 ﻿using System.Reflection;
 using GdCore.CodeUtils;
 using GdCore.Services;
-using Godot;
+
 using JetBrains.Annotations;
 
-namespace GdCore.Extensions;
+namespace GdCore;
 
 public static class NodeExtensionMethods
 {

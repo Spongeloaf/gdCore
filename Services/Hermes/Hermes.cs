@@ -22,7 +22,20 @@ public static class Hermes
 
 	private static ITinyMessengerHub hub = TinyIoCContainer.Current.Resolve<ITinyMessengerHub>();
 
-	public static void Subscribe<T>(Node node, Action<T> action) where T : class, ITinyMessage
+    /// <summary>
+    /// Creates a subscriber as a child of the given node and subscribes to messages.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="node"></param>
+    /// <param name="action"></param>
+    public static void CreateAndSubscribe<T>(Node node, Action<T> action) where T : class, ITinyMessage
+    {
+        var hermesSub = new HermesSubscriber();
+        node.AddChild(hermesSub);
+        Subscribe<T>(hermesSub, action);
+    }
+
+    public static void Subscribe<T>(Node node, Action<T> action) where T : class, ITinyMessage
 	{
 		if (node is not IHermesSubscriber subscriber)
 			return;

@@ -1,6 +1,4 @@
-﻿using Godot;
-
-namespace GdCore.Extensions;
+﻿namespace GdCore;
 
 /// <summary>
 /// This class formalizes the concept of a resource path into an object that can be easily
