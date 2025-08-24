@@ -285,15 +285,18 @@ public static class NodeExtensionMethods
 
     /// <summary>
     /// Finds all children in the scene who match fields/properties on the parent node which are
-    /// tagged with CriticalNodeAttribute. Throws MissingCriticalNodeException if any node fails.
+    /// tagged with CriticalNodeAttribute or OptionalNodeAttribute.
+    /// <br/>
+    /// Throws MissingCriticalNodeException if any critical node fails. Optional nodes DO NOT throw
+    /// if they are not found in the scene.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="parent">The Node-derived class which is being operated on</param>
     /// <exception cref="MissingCriticalNodeException">
-    /// If any node fails to assign for any reason.
+    /// If any critical node fails to assign for any reason.
     /// If the reason is code-related, i.e. the reflection functions fail, then the actual
     /// exception will be wrapped in this exception.</exception>
-    public static void TryLocateCriticalNodes_Throws<T>(this T parent) where T : Node
+    public static void TryLocateSceneNodes_Throws<T>(this T parent) where T : Node
     {
     // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
     // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
@@ -304,6 +307,14 @@ public static class NodeExtensionMethods
         List<string> failedNodes = [];
         foreach (FieldInfo field in fields)
         {
+            // TODO: If you add more of these, make it a switch please.
+            OptionalNodeAttribute? optional = field.GetCustomAttribute<OptionalNodeAttribute>();
+            if (optional is not null)
+            {
+                LocateOptionalNode(parent, field, optional.NodeName);
+                continue;
+            }
+
             CriticalNodeAttribute? attr = field.GetCustomAttribute<CriticalNodeAttribute>();
             if (attr is null)
                 continue;
@@ -338,5 +349,25 @@ public static class NodeExtensionMethods
 
         Log.Debug("Found node {0} at {1}", name, candidate.GetPath());
         return true;
+    }
+
+    private static void LocateOptionalNode(Node parent, FieldInfo optionalNode, string name)
+    {
+        // TODO: Consider using a better method that is not case-sensitive
+        Node candidate = parent.FindChild(name);
+        if (candidate is null || candidate.GetType() != optionalNode.FieldType)
+            return;
+
+        try
+        {
+            optionalNode.SetValue(parent, candidate);
+        }
+        catch
+        {
+            // nothing to do
+        }
+
+        Log.Debug("Found optional node {0} at {1}", name, candidate.GetPath());
+        return;
     }
 }
