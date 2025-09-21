@@ -1,4 +1,4 @@
-﻿namespace GdCore.CodeUtils;
+﻿namespace GdCore.Libraries;
 
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class CriticalNodeAttribute(string nodeName) : Attribute

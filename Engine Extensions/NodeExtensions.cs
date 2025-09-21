@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-using GdCore.CodeUtils;
+using GdCore.Libraries;
 using GdCore.Services;
 
 using JetBrains.Annotations;
@@ -182,6 +182,18 @@ public static class NodeExtensionMethods
     public static void AdoptNode(this Node newParent, Node child)
     {
         newParent.AdoptNode(child, newParent);
+    }
+
+    /// <summary>
+    /// Removes a node from its parent and adds it as a child of another parent.
+    /// This overload uses the parent as the owner as well.
+    /// </summary>
+    /// <param name="child"></param>
+    /// <param name="newParent"></param>
+    public static void AdoptNodes(this Node newParent, IEnumerable<Node> nodes)
+    {
+        foreach (Node child in nodes) 
+            newParent.AdoptNode(child, newParent);
     }
 
     public static T CreateParentedChild<T>(this Node parent, Node sceneRoot, string name) where T : Node, new()
