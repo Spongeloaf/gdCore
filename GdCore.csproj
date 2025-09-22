@@ -8,6 +8,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>enable</Nullable>
     <OutputType>Library</OutputType>
+    <Configurations>Debug;Release;Resource Generators</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

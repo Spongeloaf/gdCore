@@ -382,4 +382,16 @@ public static class NodeExtensionMethods
         Log.Debug("Found optional node {0} at {1}", name, candidate.GetPath());
         return;
     }
+
+    public static void UnparentNode(this Node? node)
+    {
+        if (node.IsNodeInvalid())
+            return;
+
+        Node? parent = node.GetParent();
+        if (parent.IsNodeInvalid())
+            return;
+
+        parent.RemoveChild(node);
+    }
 }
