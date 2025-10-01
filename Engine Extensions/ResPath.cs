@@ -11,12 +11,15 @@ public class ResPath
 	{
 		res,
 		user,
+        uid, // TODO: add support for this type!
 	}
 
 	private const string projectUserFolderSetting = "application/config/custom_user_dir_name";
 	private const string resPrefix = "res://";
 	private const string userPrefix = "user://";
-	private string _path;
+	private const string uidPrefix = "uid://";
+
+private string _path;
 	private string _realPath;
 	private PathType _type;
 
@@ -35,8 +38,14 @@ public class ResPath
 			_type = PathType.res;
 		else if (address.StartsWith(userPrefix))
 			_type = PathType.user;
-		else
+        else if (address.StartsWith(uidPrefix))
+            _type = PathType.uid;
+        else
 			throw new ArgumentException(nameof(address), $"Not a valid respath: {address}");
+
+        if (_type == PathType.uid)
+            throw new NotImplementedException("Support for uids has not been implemented yet! " +
+                                              "Looks like it's your time to shine, Broseph.");
 
 		_path = address;
 		_realPath = MakeRealRealPath();

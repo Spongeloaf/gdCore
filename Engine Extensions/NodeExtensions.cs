@@ -286,8 +286,18 @@ public static class NodeExtensionMethods
             child.QueueFree();
     }
 
+    [Obsolete($"Use {nameof(IsDeletedOrNull)}() instead. Same functionality, more auto-complete friendly.")]
     [ContractAnnotation("null => true; notnull => false")]
     public static bool IsNodeInvalid(this Node? node)
+    {
+        return IsDeletedOrNull(node);
+    }
+
+    /// <summary>
+    /// Returns true if the node reference is null, or points to a node that has been queued for deletion.
+    /// </summary>
+    [ContractAnnotation("null => true; notnull => false")]
+    public static bool IsDeletedOrNull(this Node? node)
     {
         if (node is null)
             return true;
@@ -303,16 +313,16 @@ public static class NodeExtensionMethods
     /// if they are not found in the scene.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="parent">The Node-derived class which is being operated on</param>
+    /// <param name="node">The Node-derived class which is being operated on</param>
     /// <exception cref="MissingCriticalNodeException">
     /// If any critical node fails to assign for any reason.
     /// If the reason is code-related, i.e. the reflection functions fail, then the actual
     /// exception will be wrapped in this exception.</exception>
-    public static void TryLocateSceneNodes_Throws<T>(this T parent) where T : Node
+    public static void TryLocateSceneNodes_Throws(this Node node) 
     {
     // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
     // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
-        TypeInfo to = typeof(T).GetTypeInfo();
+        TypeInfo to = node.GetType().GetTypeInfo();
         FieldInfo[] fields = to.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
         bool foundAnyTaggedFields = false;
@@ -323,7 +333,7 @@ public static class NodeExtensionMethods
             OptionalNodeAttribute? optional = field.GetCustomAttribute<OptionalNodeAttribute>();
             if (optional is not null)
             {
-                LocateOptionalNode(parent, field, optional.NodeName);
+                LocateOptionalNode(node, field, optional.NodeName);
                 continue;
             }
 
@@ -332,7 +342,7 @@ public static class NodeExtensionMethods
                 continue;
 
             foundAnyTaggedFields = true;
-            if (!LocateCriticalNode(parent, field, attr.NodeName)) 
+            if (!LocateCriticalNode(node, field, attr.NodeName)) 
                 failedNodes.Add(attr.NodeName);
         }
 
@@ -340,19 +350,19 @@ public static class NodeExtensionMethods
             throw new MissingCriticalNodeException($"Failed to locate critical nodes: {string.Join(", ", failedNodes)}");
 
         if (!foundAnyTaggedFields) 
-            Log.Debug("{0} does not contain any member nodes tagged as 'Critical'", parent.Name);
+            Log.Debug("{0} does not contain any member nodes tagged as 'Critical'", node.Name);
     }
 
-    private static bool LocateCriticalNode(Node parent, FieldInfo criticalNode, string name)
+    private static bool LocateCriticalNode(Node node, FieldInfo nodeInfo, string name)
     {
         // TODO: Consider using a better method that is not case-sensitive
-        Node candidate = parent.FindChild(name);
-        if (candidate is null || candidate.GetType() != criticalNode.FieldType) 
+        Node? candidate = node.FindChild(name, true, false);
+        if (IsInvalidCandidate(candidate, nodeInfo))
             return false;
 
         try
         {
-            criticalNode.SetValue(parent, candidate);
+            nodeInfo.SetValue(node, candidate);
         }
         catch (Exception e)
         {
@@ -363,16 +373,16 @@ public static class NodeExtensionMethods
         return true;
     }
 
-    private static void LocateOptionalNode(Node parent, FieldInfo optionalNode, string name)
+    private static void LocateOptionalNode(Node parent, FieldInfo nodeInfo, string name)
     {
         // TODO: Consider using a better method that is not case-sensitive
-        Node candidate = parent.FindChild(name);
-        if (candidate is null || candidate.GetType() != optionalNode.FieldType)
+        Node? candidate = parent.FindChild(name, true, false);
+        if (IsInvalidCandidate(candidate, nodeInfo))
             return;
 
         try
         {
-            optionalNode.SetValue(parent, candidate);
+            nodeInfo.SetValue(parent, candidate);
         }
         catch
         {
@@ -383,13 +393,21 @@ public static class NodeExtensionMethods
         return;
     }
 
+    private static bool IsInvalidCandidate(Node? candidate, FieldInfo nodeInfo)
+    {
+        if (candidate is null)
+            return true;
+
+        return !candidate.GetType().IsSubclassOf(nodeInfo.FieldType) && candidate.GetType() != nodeInfo.FieldType;
+    }
+
     public static void UnparentNode(this Node? node)
     {
-        if (node.IsNodeInvalid())
+        if (node.IsDeletedOrNull())
             return;
 
         Node? parent = node.GetParent();
-        if (parent.IsNodeInvalid())
+        if (parent.IsDeletedOrNull())
             return;
 
         parent.RemoveChild(node);
