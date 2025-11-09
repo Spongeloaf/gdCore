@@ -31,6 +31,21 @@ public class MissingCriticalNodeException : GdException
 }
 
 [Serializable]
+public class AutoGenerateNodeFailedException : GdException
+{
+    public AutoGenerateNodeFailedException()
+    { }
+
+    public AutoGenerateNodeFailedException(string message)
+        : base(message)
+    { }
+
+    public AutoGenerateNodeFailedException(string message, Exception innerException)
+        : base(message, innerException)
+    { }
+}
+
+[Serializable]
 public class MissingResourceException : GdException
 {
     private static string MakeMessage(string message)

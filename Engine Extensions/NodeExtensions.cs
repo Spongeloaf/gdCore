@@ -1,8 +1,7 @@
-﻿using System.Reflection;
-using GdCore.Libraries;
+﻿using GdCore.Libraries;
 using GdCore.Services;
-
 using JetBrains.Annotations;
+using System.Reflection;
 
 namespace GdCore;
 
@@ -192,22 +191,22 @@ public static class NodeExtensionMethods
     /// <param name="newParent"></param>
     public static void AdoptNodes(this Node newParent, IEnumerable<Node> nodes)
     {
-        foreach (Node child in nodes) 
+        foreach (Node child in nodes)
             newParent.AdoptNode(child, newParent);
     }
 
     public static T CreateParentedChild<T>(this Node parent, Node sceneRoot, string name) where T : Node, new()
     {
         T node = new();
-        node.AdoptNode(parent, sceneRoot);
+        parent.AdoptNode(node, sceneRoot);
         node.Name = name;
         return node;
     }
 
-    public static T CreateChild<T>(this Node parent) where T : Node, new()
+    public static T CreateChild<T>(this Node parent, string? name = null) where T : Node, new()
     {
         T node = new();
-        node.Name = typeof(T).Name;
+        node.Name = name ?? typeof(T).Name;
         parent.AddChild(node);
         return node;
     }
@@ -245,29 +244,17 @@ public static class NodeExtensionMethods
         }
     }
 
-    // TODO: Move this to spatial
-    public static void AddChildrenInAGridPattern(this Node parent, List<Node3D> children, float spacing)
+    /// <summary>
+    /// Will call QueueFree() on any valid node that is passed in.
+    /// Does nothing if the reference is null, or the node is already freed.
+    /// </summary>
+    /// <param name="node"></param>
+    public static void EnsureDeleted(this Node? node)
     {
-        // + 0.5f makes sure we round up 
-        int rows = (int)Mathf.Round(Mathf.Sqrt(children.Count) + 0.5f);
-        int index = 0;
-        Vector3 position = Vector3.Zero;
-        for (int i = 0; i < rows; i++)
-        {
-            for (int j = 0; j < rows; j++)
-            {
-                if (index >= children.Count)
-                    break;
+        if (node.IsDeletedOrNull())
+            return;
 
-                Node3D child = children[index];
-                parent.AddChild(child);
-                child.Position = position;
-                position.X += spacing;
-                index++;
-            }
-            position.Z += spacing;
-            position.X = 0;
-        }
+        node.QueueFree();
     }
 
     /// <summary>
@@ -305,6 +292,18 @@ public static class NodeExtensionMethods
         return !GodotObject.IsInstanceValid(node);
     }
 
+    public static void UnparentNode(this Node? node)
+    {
+        if (node.IsDeletedOrNull())
+            return;
+
+        Node? parent = node.GetParent();
+        if (parent.IsDeletedOrNull())
+            return;
+
+        parent.RemoveChild(node);
+    }
+
     /// <summary>
     /// Finds all children in the scene who match fields/properties on the parent node which are
     /// tagged with CriticalNodeAttribute or OptionalNodeAttribute.
@@ -315,21 +314,28 @@ public static class NodeExtensionMethods
     /// <typeparam name="T"></typeparam>
     /// <param name="node">The Node-derived class which is being operated on</param>
     /// <exception cref="MissingCriticalNodeException">
+    /// <exception cref="AutoGenerateNodeFailedException">
     /// If any critical node fails to assign for any reason.
     /// If the reason is code-related, i.e. the reflection functions fail, then the actual
     /// exception will be wrapped in this exception.</exception>
-    public static void TryLocateSceneNodes_Throws(this Node node) 
+    public static void TrySetupTaggedNodes_Throws(this Node node)
     {
-    // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
-    // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
+        // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
+        // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
         TypeInfo to = node.GetType().GetTypeInfo();
         FieldInfo[] fields = to.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
-        bool foundAnyTaggedFields = false;
+        bool foundAnyCriticalFields = false;
         List<string> failedNodes = [];
         foreach (FieldInfo field in fields)
         {
-            // TODO: If you add more of these, make it a switch please.
+            AutoCreateNodeAttribute? autoAttr = field.GetCustomAttribute<AutoCreateNodeAttribute>();
+            if (autoAttr != null)
+            {
+                AutoCreateNode(field, node);
+            }
+            
+            
             OptionalNodeAttribute? optional = field.GetCustomAttribute<OptionalNodeAttribute>();
             if (optional is not null)
             {
@@ -341,22 +347,112 @@ public static class NodeExtensionMethods
             if (attr is null)
                 continue;
 
-            foundAnyTaggedFields = true;
-            if (!LocateCriticalNode(node, field, attr.NodeName)) 
+            foundAnyCriticalFields = true;
+            if (!LocateCriticalNode(node, field, attr.NodeName))
                 failedNodes.Add(attr.NodeName);
         }
 
         if (failedNodes.Count != 0)
-            throw new MissingCriticalNodeException($"Failed to locate critical nodes: {string.Join(", ", failedNodes)}");
+        {
+            string message = $"Failed to locate critical nodes: {string.Join(", ", failedNodes)}";
+            HandleMissingCriticalNode(message);
+        }
 
-        if (!foundAnyTaggedFields) 
+        if (!foundAnyCriticalFields)
             Log.Debug("{0} does not contain any member nodes tagged as 'Critical'", node.Name);
     }
 
+
+    private static void AutoCreateNode(FieldInfo field, Node parent)
+    {
+        ConstructorInfo[] constructors = field.FieldType.GetConstructors();
+        foreach (ConstructorInfo ci in constructors)
+        {
+            if (ci.GetParameters().Length != 0)
+                continue;
+
+            var obj = ci.Invoke([]);
+            if (obj is not Node node)
+                break;
+
+            try
+            {
+                field.SetValue(parent, node);
+                parent.AddChild(node);
+                node.Name = field.Name;
+                return;
+            }
+            catch (Exception e)
+            {
+                string message = $"Failed to assign auto generated node to {field.Name} to {parent.Name}";
+                HandleAutoGenerateFailed(message, e);
+            }
+        }
+
+        Log.GameError("Auto generation failed. No parameterless constructor for {0} found.", field.GetType().Name);
+    }
+
+    /// <summary>
+    /// Finds a descendant node by name, using a case-insensitive comparison function.
+    /// Uses a depth-first search. Ignore internal children. 
+    /// </summary>
+    /// <param name="node"></param>
+    /// <param name="name"></param>
+    /// <returns>Descendant node with a matching name, or null if not found.</returns>
+    public static Node? FindChildIgnoreCase(this Node node, string name)
+    {
+        var children = node.GetChildren(false);
+        foreach (var child in children)
+        {
+            if (StringComparer.OrdinalIgnoreCase.Compare(child.Name, name) == 0)
+                return child;
+
+            Node? result = FindChildIgnoreCase(child, name);
+            if (result.IsDeletedOrNull())
+                return result;
+        }
+
+        return null;
+    }
+
+    ////////////////////////////////// Private below //////////////////////////////////
+
+    private static void HandleMissingCriticalNode(string message, Exception? ex = null)
+    {
+        if (Engine.IsEditorHint())
+        {
+            if (ex is not null)
+                message += ": " + ex.Message;
+            Log.GameError(message);
+            return;
+        }
+
+        if (ex is null)
+            throw new MissingCriticalNodeException(message);
+        else
+            throw new MissingCriticalNodeException(message, ex);
+    }
+
+    private static void HandleAutoGenerateFailed(string message, Exception? ex = null)
+    {
+        if (Engine.IsEditorHint())
+        {
+            if (ex is not null)
+                message += ": " + ex.Message;
+            Log.GameError(message);
+            return;
+        }
+
+        if (ex is null)
+            throw new MissingCriticalNodeException(message);
+        else
+            throw new MissingCriticalNodeException(message, ex);
+    }
+
+
     private static bool LocateCriticalNode(Node node, FieldInfo nodeInfo, string name)
     {
-        // TODO: Consider using a better method that is not case-sensitive
-        Node? candidate = node.FindChild(name, true, false);
+        Node? candidate = node.FindChildIgnoreCase(name);
         if (IsInvalidCandidate(candidate, nodeInfo))
             return false;
 
@@ -399,17 +495,5 @@ public static class NodeExtensionMethods
             return true;
 
         return !candidate.GetType().IsSubclassOf(nodeInfo.FieldType) && candidate.GetType() != nodeInfo.FieldType;
-    }
-
-    public static void UnparentNode(this Node? node)
-    {
-        if (node.IsDeletedOrNull())
-            return;
-
-        Node? parent = node.GetParent();
-        if (parent.IsDeletedOrNull())
-            return;
-
-        parent.RemoveChild(node);
     }
 }

@@ -34,7 +34,7 @@ public static class ExtensionMethodsEnum
 public static class ExtensionMethodsRect
 {
     // Godots 2d coord space is Y+ == down.
-    
+
     public static Vector2I BottomLeft(this Rect2I rect)
     {
         return new Vector2I(rect.Position.X, rect.End.Y);
