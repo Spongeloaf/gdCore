@@ -408,7 +408,7 @@ public static class NodeExtensionMethods
                 return child;
 
             Node? result = FindChildIgnoreCase(child, name);
-            if (result.IsDeletedOrNull())
+            if (!result.IsDeletedOrNull())
                 return result;
         }
 
