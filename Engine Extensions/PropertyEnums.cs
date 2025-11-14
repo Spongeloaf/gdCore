@@ -22,7 +22,10 @@ public enum NodeProperty
 
 public enum AnimationProperty
 {
-    RotationY,
+    RotationY, 
+    RotationX, 
+    RotationZ,
+    Method,
 }
 
 public static class EnumExtensions

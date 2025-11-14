@@ -30,7 +30,7 @@ public static class Hermes
     /// <param name="action"></param>
     public static void CreateAndSubscribe<T>(Node node, Action<T> action) where T : class, ITinyMessage
     {
-        var hermesSub = new HermesSubscriber();
+        var hermesSub = new HermesSubscriberNode();
         node.AddChild(hermesSub);
         Subscribe<T>(hermesSub, action);
     }
@@ -50,6 +50,11 @@ public static class Hermes
             }
         };
 
+        subscriber.HermesTokens.Add(hub.Subscribe(action));
+    }
+
+    public static void Subscribe<T>(HermesSubscriber_Disposable subscriber, Action<T> action) where T : class, ITinyMessage
+    {
         subscriber.HermesTokens.Add(hub.Subscribe(action));
     }
 

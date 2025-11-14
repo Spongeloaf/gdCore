@@ -13,7 +13,7 @@ namespace GdCore.Services;
 /// Hermes.Subscribe&lt;M_MeleeWeaponImpact&gt;(subNode, this.someDelegate);
 /// </summary>
 [GlobalClass]
-public partial class HermesSubscriber : Node, IHermesSubscriber
+public partial class HermesSubscriberNode : Node, IHermesSubscriber
 {
     public List<TinyMessageSubscriptionToken> HermesTokens { get; } = new();
 
