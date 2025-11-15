@@ -60,6 +60,7 @@ public static class EnumExtensions
         return prop switch
         {
             AnimationProperty.RotationY => ":rotation:y",
+            AnimationProperty.Method => ":method",
             _ => throw new ArgumentOutOfRangeException(nameof(prop), prop, null)
         };
     }

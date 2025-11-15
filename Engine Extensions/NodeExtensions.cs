@@ -206,8 +206,8 @@ public static class NodeExtensionMethods
     public static T CreateChild<T>(this Node parent, string? name = null) where T : Node, new()
     {
         T node = new();
-        node.Name = name ?? typeof(T).Name;
         parent.AddChild(node);
+        node.Name = name ?? typeof(T).Name;
         return node;
     }
 
