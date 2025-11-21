@@ -1,5 +1,10 @@
 ﻿
+using System.Numerics;
 using GdCore;
+using GdCore.Engine_Extensions;
+using Godot.Collections;
+using Vector2 = Godot.Vector2;
+using Vector3 = Godot.Vector3;
 
 public static class Spatial
 {
@@ -106,5 +111,37 @@ public static class Spatial
         }
 
         return box;
+    }
+
+    public static RayCastHit3D DoRayCastPointToPoint(World3D world, Vector3 a, Vector3 b, Rid[]? excludes = null, uint collisionMask = 1)
+    {
+        Vector3 direction = a.DirectionTo(b);
+        float distance = a.DistanceTo(b);
+        return DoRayCastInDirection(world, a, direction, excludes, collisionMask, distance);
+    }
+
+    public static RayCastHit3D DoRayCastInDirection(World3D world, Vector3 from, Vector3 direction, Rid[]? excludes = null, uint collisionMask = 1, float length = 10000)
+    {
+        direction = direction.Normalized();
+        Vector3 to = from + direction * length;
+
+        Array<Rid>? excludes_array = [];
+        if (excludes is not null)
+        {
+            foreach (Rid id in excludes)
+                excludes_array.Add(id);
+        }
+
+        var query = PhysicsRayQueryParameters3D.Create(from, to, collisionMask, excludes_array);
+        query.CollideWithAreas = true;
+        query.CollideWithBodies = true;
+        Dictionary result = world.DirectSpaceState.IntersectRay(query);
+        RayCastHit3D hit = new(result);
+
+        // Always return the point limited to 'length' argument
+        if (hit.position == Vector3.Inf)
+            hit.position = to;
+
+        return hit;
     }
 }
