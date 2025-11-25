@@ -13,4 +13,17 @@ public static class ReflectionUtils
 
         return null;
     }
+
+    public static object? GetMemberValue(MemberInfo memberInfo, object? forObject)
+    {
+        switch (memberInfo.MemberType)
+        {
+            case MemberTypes.Field:
+                return ((FieldInfo)memberInfo).GetValue(forObject);
+            case MemberTypes.Property:
+                return ((PropertyInfo)memberInfo).GetValue(forObject);
+            default:
+                throw new NotImplementedException();
+        }
+    }
 }

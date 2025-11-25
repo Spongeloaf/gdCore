@@ -14,6 +14,7 @@ public enum DebugCategory : ulong
     GameWorld = 4,
     Models = 8,
     Turrets = 16,
+    Combat = 32,
 }
 
 public static class Log
