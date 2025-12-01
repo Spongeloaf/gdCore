@@ -72,3 +72,23 @@ public class MissingResourceException : GdException
     {
     }
 }
+
+/// <summary>
+/// A TODO style exception you can throw for interfaces or methods that should be replaced.
+/// The message should contain a reason for this code being condemned.
+/// </summary>
+[Serializable]
+public class CondemnedCodeException : GdException
+{
+    private const string prefix = "This code has been flagged to be replaced: ";
+
+    /// <inheritdoc cref="CondemnedCodeException"/>
+    public CondemnedCodeException(string replaceWithWhat)
+        : base(prefix + replaceWithWhat)
+    { }
+
+    /// <inheritdoc cref="CondemnedCodeException"/>
+    public CondemnedCodeException(string replaceWithWhat, Exception innerException)
+        : base(prefix + replaceWithWhat, innerException)
+    { }
+}
