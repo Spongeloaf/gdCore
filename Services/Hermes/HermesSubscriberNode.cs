@@ -8,7 +8,7 @@ namespace GdCore.Services;
 /// <br></br>
 /// <b> Usage: </b>
 ///<br></br>
-/// var subNode = TreeUtils.CreateParentedChild&lt;HermesSubscriber&gt;(this);
+/// var subNode = TreeUtils.CreateOwnedChild&lt;HermesSubscriber&gt;(this);
 ///<br></br>
 /// Hermes.Subscribe&lt;M_MeleeWeaponImpact&gt;(subNode, this.someDelegate);
 /// </summary>

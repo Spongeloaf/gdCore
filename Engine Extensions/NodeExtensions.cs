@@ -195,7 +195,7 @@ public static class NodeExtensionMethods
             newParent.AdoptNode(child, newParent);
     }
 
-    public static T CreateParentedChild<T>(this Node parent, Node sceneRoot, string name) where T : Node, new()
+    public static T CreateOwnedChild<T>(this Node parent, Node sceneRoot, string name) where T : Node, new()
     {
         T node = new();
         parent.AdoptNode(node, sceneRoot);
@@ -211,14 +211,14 @@ public static class NodeExtensionMethods
         return node;
     }
 
-    public static T CreateParentedChild<T>(this Node parent) where T : Node, new()
+    public static T CreateOwnedChild<T>(this Node parent) where T : Node, new()
     {
-        return parent.CreateParentedChild<T>(parent);
+        return parent.CreateOwnedChild<T>(parent);
     }
 
-    public static T CreateParentedChild<T>(this Node parent, Node sceneRoot) where T : Node, new()
+    public static T CreateOwnedChild<T>(this Node parent, Node sceneRoot) where T : Node, new()
     {
-        return parent.CreateParentedChild<T>(sceneRoot, typeof(T).Name);
+        return parent.CreateOwnedChild<T>(sceneRoot, typeof(T).Name);
     }
 
     public static T? FindAncestor<T>(this Node node) where T : Node
