@@ -92,3 +92,18 @@ public class CondemnedCodeException : GdException
         : base(prefix + replaceWithWhat, innerException)
     { }
 }
+
+[Serializable]
+public class SceneTreeLayoutException : GdException
+{
+    public SceneTreeLayoutException()
+    { }
+
+    public SceneTreeLayoutException(string message)
+        : base(message)
+    { }
+
+    public SceneTreeLayoutException(string message, Exception innerException)
+        : base(message, innerException)
+    { }
+}

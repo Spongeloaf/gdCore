@@ -80,6 +80,9 @@ public static class NodeExtensionMethods
     /// <returns>Null if no candidate is found</returns>
     public static T? FindFirstChildRecursive<T>(this Node node) where T : Node
     {
+        if (node.IsDeletedOrNull())
+            return null;
+
         foreach (Node child in node.GetChildren())
         {
             if (child is T candidate)
@@ -320,8 +323,10 @@ public static class NodeExtensionMethods
     /// exception will be wrapped in this exception.</exception>
     public static void TrySetupTaggedNodes_Throws(this Node node)
     {
+        // TODO: This should have a recursive option!
         // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
         // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
+
         TypeInfo to = node.GetType().GetTypeInfo();
         FieldInfo[] fields = to.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
 
