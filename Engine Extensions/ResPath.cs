@@ -51,9 +51,9 @@ public class ResPath
         _realPath = MakeRealRealPath();
     }
 
+    // Allows easy use of raw strings pasted from the editor 
     public static implicit operator ResPath(string address)
     {
-        // While not technically a requirement; see below why this is done.
         return new ResPath(address);
     }
 
@@ -69,7 +69,7 @@ public class ResPath
 
     private string MakeRealRealPath()
     {
-        // TODO: See if you can if-def this for exported builds
+        // TODO: if-def this for exported builds
         // Running from an editor binary.
         if (OS.HasFeature("editor"))
             return ProjectSettings.GlobalizePath(_path);
