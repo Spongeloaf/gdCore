@@ -7,7 +7,7 @@
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class CriticalNodeAttribute(string nodeName) : Attribute
 {
-    public readonly string NodeName = nodeName;
+    public readonly string nodeName = nodeName;
 }
 
 /// <summary>
@@ -17,7 +17,7 @@ public class CriticalNodeAttribute(string nodeName) : Attribute
 [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 public class OptionalNodeAttribute(string nodeName) : Attribute
 {
-    public readonly string NodeName = nodeName;
+    public readonly string nodeName = nodeName;
 }
 
 /// <summary>

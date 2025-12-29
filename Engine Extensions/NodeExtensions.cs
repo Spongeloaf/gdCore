@@ -308,7 +308,7 @@ public static class NodeExtensionMethods
     }
 
     /// <summary>
-    /// Finds all children in the scene who match fields/properties on the parent node which are
+    /// Finds all children (recursively) in the scene who match fields/properties on the parent node which are
     /// tagged with CriticalNodeAttribute or OptionalNodeAttribute.
     /// <br/>
     /// Throws MissingCriticalNodeException if any critical node fails. Optional nodes DO NOT throw
@@ -323,7 +323,6 @@ public static class NodeExtensionMethods
     /// exception will be wrapped in this exception.</exception>
     public static void TrySetupTaggedNodes_Throws(this Node node)
     {
-        // TODO: This should have a recursive option!
         // TODO: Would be rad to have a "Crash the game gracefully" system where I could cleanly display a popup message,
         // shut down the game, and dump some logs. Then instead of throwing, I could do that when a critical node fails.
 
@@ -344,7 +343,7 @@ public static class NodeExtensionMethods
             OptionalNodeAttribute? optional = field.GetCustomAttribute<OptionalNodeAttribute>();
             if (optional is not null)
             {
-                LocateOptionalNode(node, field, optional.NodeName);
+                LocateOptionalNode(node, field, optional.nodeName);
                 continue;
             }
 
@@ -353,8 +352,8 @@ public static class NodeExtensionMethods
                 continue;
 
             foundAnyCriticalFields = true;
-            if (!LocateCriticalNode(node, field, attr.NodeName))
-                failedNodes.Add(attr.NodeName);
+            if (!LocateCriticalNode(node, field, attr.nodeName))
+                failedNodes.Add(attr.nodeName);
         }
 
         if (failedNodes.Count != 0)
@@ -453,7 +452,6 @@ public static class NodeExtensionMethods
         else
             throw new MissingCriticalNodeException(message, ex);
     }
-
 
     private static bool LocateCriticalNode(Node node, FieldInfo nodeInfo, string name)
     {
