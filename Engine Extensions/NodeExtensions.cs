@@ -138,7 +138,6 @@ public static class NodeExtensionMethods
         }
     }
 
-
     public static void TakeOwnershipOfTree(this Node owner, Node node)
     {
         if (!owner.IsAncestorOf(node) && node != owner)
