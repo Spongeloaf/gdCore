@@ -151,7 +151,8 @@ public static class NodeExtensionMethods
 
     private static void TakeOwnership(this Node node, Node owner)
     {
-        node.Owner = owner;
+        if (node.Owner != owner)
+            node.Owner = owner;
 
         foreach (Node child in node.GetChildren())
             child.TakeOwnership(owner);
