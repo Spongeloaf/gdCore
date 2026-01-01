@@ -31,7 +31,7 @@ public enum AnimationProperty
 public static class EnumExtensions
 {
 
-    public static string ToPropertyString(this NodeProperty prop)
+    public static string ToPropertyName(this NodeProperty prop)
     {
         return prop switch
         {
@@ -53,6 +53,11 @@ public static class EnumExtensions
             NodeProperty.MarginBottom => "margin_bottom",
             _ => throw new ArgumentOutOfRangeException(nameof(prop), prop, null),
         };
+    }
+
+    public static string ToPropertyPath(this NodeProperty prop)
+    {
+        return ':' + prop.ToPropertyName();
     }
 
     public static string ToPropertyString(this AnimationProperty prop)

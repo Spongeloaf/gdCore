@@ -15,7 +15,7 @@ public static class BTween
         Tween.EaseType ease = Tween.EaseType.InOut)
     {
         Tween tween = target.GetTree().CreateTween();
-        string propName = prop.ToPropertyString();
+        string propName = prop.ToPropertyName();
         tween.TweenProperty(target, propName, finalValue, duration)
             .SetTrans(transition)
             .SetEase(ease);
@@ -31,7 +31,7 @@ public static class BTween
         Tween.TransitionType transition = Tween.TransitionType.Linear,
         Tween.EaseType ease = Tween.EaseType.InOut)
     {
-        string nodepath = prop.ToPropertyString();
+        string nodepath = prop.ToPropertyName();
         tween.TweenProperty(target, nodepath, finalValue, duration)
             .SetTrans(transition)
             .SetEase(ease);
