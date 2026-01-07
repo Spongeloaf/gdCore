@@ -9,12 +9,19 @@ public interface IHermesSubscriber
 }
 
 /// <summary>
-/// Hermes is an easy messenger service that works using a publish/subscribe model.
-/// Anyone can publish messages.<br/>
-///
-/// To subscribe to messages, make your class inherit from the IHermesSubscriber
-/// interface and call Hermes.Subscribe&lt;MessageType&gt;(this, ...)
-/// inside your constructor.
+/// Hermes is an easy synchronous messenger service that works using a publish/subscribe model.
+/// It's built on top the excellent ITinyMessage package with several Godot-friendly features
+/// added.
+/// <br/><br/>
+/// You'll need to create your own message types by implementing <see cref="ITinyMessage"/>, and
+/// then anyone can publish messages from the static method <see cref="Hermes.Publish"/>
+/// <br/><br/>
+/// To subscribe to messages, you can use the <see cref="HermesSubscriberNode"/>,
+/// instantiate a <see cref="HermesSubscriber_Disposable"/>, or make your own class inherit from
+/// <see cref="IHermesSubscriber"/>.
+/// <br/><br/>
+/// Then you can use Hermes.Subscribe&lt;MessageType&gt;(subscriber, Action&lt;MessageType&gt;)
+/// to begin receiving messages.
 /// </summary>
 public static class Hermes
 {

@@ -419,6 +419,16 @@ public static class NodeExtensionMethods
         return null;
     }
 
+    /// <summary>
+    /// Calls RequestReady() on this node and all its children
+    /// </summary>
+    public static void RequestReadyRecursive(this Node node)
+    {
+        node.RequestReady();
+        foreach (Node child in node.GetChildren())
+            child.RequestReadyRecursive();
+    }
+
     ////////////////////////////////// Private below //////////////////////////////////
 
     private static void HandleMissingCriticalNode(string message, Exception? ex = null)
