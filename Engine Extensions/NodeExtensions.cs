@@ -224,8 +224,18 @@ public static class NodeExtensionMethods
         return parent.CreateOwnedChild<T>(sceneRoot, typeof(T).Name);
     }
 
-    public static T? FindAncestor<T>(this Node node) where T : Node
+    /// <summary>
+    /// Searches up the tree for an ancestor node of the specified type. If allowReturnSelf == true,
+    /// then the given node may be returned if it is of the specified type
+    /// </summary>
+    public static T? FindAncestor<T>(this Node node, bool allowReturnSelf = false) where T : Node
     {
+        if (node.IsDeletedOrNull())
+            return null;
+
+        if (allowReturnSelf && node is T t)
+            return t;
+
         return node.FindAncestor_Impl<T>();
     }
 

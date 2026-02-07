@@ -6,7 +6,7 @@ using System.Diagnostics;
 // There's a copy of this in both the base project and the utility project. If you overhaul this, please duplicate it there!
 namespace GdCore.Services;
 
-// TODO: See if this can be made generic, so that GdCore can provide the enums and
+// TODO: See if this can be made generic, so that users can can provide the enums and
 // the logger can remain pure.
 [Flags]
 public enum DebugCategory : ulong
@@ -17,6 +17,7 @@ public enum DebugCategory : ulong
     Models = 8,
     Turrets = 16,
     Combat = 32,
+    Multiplayer = 64,
 }
 
 public static class Log
