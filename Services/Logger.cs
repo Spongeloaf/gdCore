@@ -18,6 +18,7 @@ public enum DebugCategory : ulong
     Turrets = 16,
     Combat = 32,
     Multiplayer = 64,
+    Ui = 128,
 }
 
 public static class Log

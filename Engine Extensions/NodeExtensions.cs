@@ -78,7 +78,7 @@ public static class NodeExtensionMethods
     /// <typeparam name="T"></typeparam>
     /// <param name="node"></param>
     /// <returns>Null if no candidate is found</returns>
-    public static T? FindFirstChildRecursive<T>(this Node node) where T : Node
+    public static T? FindFirstChildRecursive<T>(this Node node) where T : Node 
     {
         if (node.IsDeletedOrNull())
             return null;
